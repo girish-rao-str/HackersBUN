@@ -104,7 +104,7 @@ One-click export for:
 ## 🚀 How to Use
 
 ### Option 1: View Live
-**https://hackersbun-girish.github.io/HackersBun/**
+**[https://hackersbun-girish.github.io/HackersBun/](https://girish-rao-str.github.io/HackersBUN/)**
 
 ### Option 2: Run Locally
 ```bash
