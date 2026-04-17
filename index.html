@@ -1106,25 +1106,56 @@
             return desc.includes('linkedin') || content.includes('linkedin') || title.includes('linkedin');
         }
 
-        async function fetchSingleFeed(feed) {
-            try {
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 8000);
-                
-                const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(feed.url);
-                const response = await fetch(proxyUrl, { signal: controller.signal });
-                clearTimeout(timeoutId);
-                
-                if (!response.ok) return [];
-                
-                const text = await response.text();
-                const parser = new DOMParser();
-                const xml = parser.parseFromString(text, 'text/xml');
-                
-                const items = xml.querySelectorAll('item');
-                const news = [];
-                
-                items.forEach((item) => {
+        async function fetchSingleFeed(feed, isAIFeed = false) {
+            const proxies = isAIFeed ? [
+                'https://api.allorigins.win/raw?url=',
+                'https://r.jina.ai/',
+                'https://rss2json.com/api.json?rss_url='
+            ] : [
+                'https://api.allorigins.win/raw?url='
+            ];
+            
+            for (const proxy of proxies) {
+                try {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 10000);
+                    
+                    let url = proxy + encodeURIComponent(feed.url);
+                    const response = await fetch(url, { signal: controller.signal });
+                    clearTimeout(timeoutId);
+                    
+                    if (!response.ok) continue;
+                    
+                    let text = await response.text();
+                    
+                    // For rss2json, convert JSON to XML
+                    if (proxy.includes('rss2json')) {
+                        try {
+                            const json = JSON.parse(text);
+                            if (json.status === 'ok' && json.items) {
+                                const news = json.items.map(item => ({
+                                    title: item.title,
+                                    link: item.link,
+                                    description: item.description || item.content || '',
+                                    pubDate: item.pubDate,
+                                    content: item.content || '',
+                                    categories: [],
+                                    source: feed.source
+                                }));
+                                return news;
+                            }
+                        } catch (e) { continue; }
+                    }
+                    
+                    const parser = new DOMParser();
+                    const xml = parser.parseFromString(text, 'text/xml');
+                    
+                    const items = xml.querySelectorAll('item');
+                    if (items.length === 0) continue;
+                    
+                    const news = [];
+                    
+                    items.forEach((item) => {
                     const title = item.querySelector('title')?.textContent || '';
                     const link = item.querySelector('link')?.textContent || '';
                     const description = item.querySelector('description')?.textContent || '';
@@ -1151,23 +1182,27 @@
                 });
                 
                 return news;
-            } catch (error) {
-                console.log(`Error fetching ${feed.name}:`, error.message);
-                return [];
+                } catch (error) {
+                    console.log(`Error fetching ${feed.name}:`, error.message);
+                }
             }
+            
+            console.log(`Failed all proxies for ${feed.name}`);
+            return [];
         }
 
-        async function fetchFromAllFeeds() {
-            const totalFeeds = RSS_FEEDS.length;
+        async function fetchFromAllFeeds(isAIFeed = false) {
+            const feeds = isAIFeed ? AI_RSS_FEEDS : RSS_FEEDS;
+            const totalFeeds = feeds.length;
             let completedFeeds = 0;
             const allResults = [];
             
-            for (const feed of RSS_FEEDS) {
-                const result = await fetchSingleFeed(feed);
+            for (const feed of feeds) {
+                const result = await fetchSingleFeed(feed, isAIFeed);
                 allResults.push(result);
                 completedFeeds++;
                 const progress = Math.round((completedFeeds / totalFeeds) * 100);
-                updateLoadingProgress(progress);
+                if (!isAIFeed) updateLoadingProgress(progress);
             }
             
             const combined = allResults.flat();
@@ -1183,12 +1218,12 @@
             const allResults = [];
             
             for (const feed of AI_RSS_FEEDS) {
-                const result = await fetchSingleFeed(feed);
+                const result = await fetchSingleFeed(feed, true);
                 allResults.push(...result);
             }
             
             const combined = allResults.flat();
-            const filtered = combined.filter(item => isWithinWeek(item.dateObj));
+            const filtered = combined.filter(item => item && isWithinWeek(item.dateObj));
             const unique = removeDuplicates(filtered);
             aiNews = unique.sort((a, b) => {
                 const timeA = a.dateObj ? a.dateObj.timestamp : 0;
