@@ -139,17 +139,8 @@
         <div class="cyber-loader">
             <div class="ring"></div><div class="ring"></div><div class="ring"></div>
             <div class="center">SCANNING</div>
-            <div class="loading-text">Fetching threat intel</div>
+            <div class="loading-text">Fetching threat intel...</div>
             <div class="loading-progress" id="loadingProgress">0<span>%</span></div>
-        </div>
-    </div>
-    <div class="modal" id="bookmarkModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>⭐ Saved Bookmarks</h3>
-                <button class="modal-close" onclick="closeModal()">&times;</button>
-            </div>
-            <div class="bookmark-list" id="bookmarkList"></div>
         </div>
     </div>
 
@@ -164,7 +155,7 @@
     </header>
 
     <div class="flash-news">
-        <div class="flash-news-label">AI Flash</div>
+        <div class="flash-news-label">AI Launches</div>
         <div class="flash-news-track" id="flashNewsTrack"></div>
     </div>
 
@@ -190,8 +181,7 @@
                 <button data-time="month" onclick="setTimeFilter('month')">Month</button>
             </div>
             <div class="toolbar-actions">
-                <button class="action-btn" onclick="exportToCSV()">📥 Export</button>
-                <button class="action-btn" onclick="showBookmarks()">⭐ Bookmarks (<span id="bookmarkCount">0</span>)</button>
+                <button class="action-btn" onclick="exportToCSV()">📥 Export CSV</button>
             </div>
         </div>
 
