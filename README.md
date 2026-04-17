@@ -181,7 +181,7 @@ This project is for educational and informational purposes. News content belongs
 |---------|------|---------|
 | v1.0 | Initial | Basic news aggregator |
 | v2.0 | Added AI News tab, Open/Copy buttons |
-| v3.0 | Added Search, Time filter, Export, Bookmarks, CVE detection |
+| v3.0 | Added Search, Time filter, Export, CVE detection |
 
 ---
 
