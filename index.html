@@ -256,7 +256,7 @@
 
         function extractSummary(d) { const div = document.createElement('div'); div.innerHTML = d; return (div.textContent || '').replace(/The post.*appeared first on.*/gi, '').trim().substring(0, 200); }
         function parseDate(ds) { if (!ds) return null; const d = new Date(ds); if (isNaN(d.getTime())) return null; return { original: ds, date: d, display: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }), time: d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }), timestamp: d.getTime() }; }
-        function isWithinWeek(dObj) { if (!dObj) return true; return dObj.timestamp > (new Date().getTime() - 7 * 24 * 60 * 60 * 1000); }
+        function isWithinWeek(dObj) { if (!dObj) return true; return dObj.timestamp > (new Date().getTime() - 3 * 24 * 60 * 60 * 1000); }
         function isWithinDay(dObj) { if (!dObj) return false; return dObj.timestamp > (new Date().getTime() - 24 * 60 * 60 * 1000); }
         function isWithinMonth(dObj) { if (!dObj) return false; return dObj.timestamp > (new Date().getTime() - 30 * 24 * 60 * 60 * 1000); }
         function getRelativeDate(d) { const ms = new Date() - d; const mins = Math.floor(ms/60000), hrs = Math.floor(ms/3600000), days = Math.floor(ms/86400000); if (mins < 1) return 'Just now'; if (mins < 60) return mins + 'm ago'; if (hrs < 24) return hrs + 'h ago'; if (days === 1) return 'Yesterday'; if (days < 7) return days + 'd ago'; return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); }
@@ -329,6 +329,9 @@
             if (!isAuto) { btn.classList.add('loading'); ol.classList.add('active'); updateLoadingProgress(0); }
             try {
                 allNews = await fetchFromAllFeeds(false);
+                // Sort by newest first (descending timestamp)
+                allNews = allNews.sort((a, b) => (b.dateObj?.timestamp || 0) - (a.dateObj?.timestamp || 0));
+                
                 await fetchAINews();
                 const now = new Date();
                 document.getElementById('lastUpdated').textContent = 'Last updated: ' + now.toLocaleTimeString();
@@ -460,7 +463,16 @@ function copyNews(e, title, summary, url) {
         
         document.getElementById('searchInput').addEventListener('input', (e) => { searchQuery = e.target.value; filterNews(); });
 
-        loadTheme(); loadBookmarks(); fetchNews();
+        // Auto-enable refresh and load news on startup
+        loadTheme(); loadBookmarks(); 
+        
+        // Fetch latest news immediately
+        fetchNews().then(() => {
+            // Auto-enable refresh after first load
+            autoRefreshEnabled = true;
+            document.getElementById('autoToggle').classList.add('active');
+            startAutoRefresh();
+        });
     </script>
 </body>
 </html>
