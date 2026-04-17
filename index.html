@@ -512,6 +512,31 @@
             flex-wrap: wrap;
         }
 
+        .card-copy-btn {
+            position: absolute;
+            bottom: 16px;
+            right: 16px;
+            background: var(--border);
+            border: none;
+            color: var(--text-secondary);
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .card-copy-btn:hover {
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+        }
+
+        .card-copy-btn.copied {
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+        }
+
         .tag {
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.6rem;
@@ -814,7 +839,7 @@
     <header>
         <div class="logo">
             <div class="logo-icon">HB</div>
-            HackerBun
+            HackersBun
         </div>
         <div class="header-controls">
             <a href="https://www.linkedin.com/company/hackersbun/" target="_blank" class="social-link" title="LinkedIn">in</a>
@@ -1023,31 +1048,16 @@
 
         async function fetchSingleFeed(feed) {
             try {
-                const proxies = [
-                    'https://api.allorigins.win/raw?url=',
-                    'https://corsproxy.io/?',
-                    'https://api.codetabs.com/v1/proxy?quest='
-                ];
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 8000);
                 
-                let success = false;
-                let text = '';
+                const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(feed.url);
+                const response = await fetch(proxyUrl, { signal: controller.signal });
+                clearTimeout(timeoutId);
                 
-                for (const proxy of proxies) {
-                    try {
-                        const proxyUrl = proxy + encodeURIComponent(feed.url);
-                        const response = await fetch(proxyUrl);
-                        if (response.ok) {
-                            text = await response.text();
-                            success = true;
-                            break;
-                        }
-                    } catch (e) {
-                        continue;
-                    }
-                }
+                if (!response.ok) return [];
                 
-                if (!success) return [];
-                
+                const text = await response.text();
                 const parser = new DOMParser();
                 const xml = parser.parseFromString(text, 'text/xml');
                 
@@ -1214,9 +1224,29 @@
                 <h3 class="card-title">${news.title}</h3>
                 <p class="card-summary">${news.summary}</p>
                 <div class="card-tags">${tagsHtml}</div>
+                <button class="card-copy-btn" onclick="copyNews(event, '${news.title.replace(/'/g, "\\'")}', '${news.summary.replace(/'/g, "\\'")}', '${news.url}')">Copy</button>
             `;
 
             return card;
+        }
+
+        function copyNews(event, title, summary, url) {
+            event.preventDefault();
+            event.stopPropagation();
+            
+            const textToCopy = `${title}\n\n${summary}\n\nRead more: ${url}`;
+            
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                const btn = event.target;
+                btn.textContent = 'Copied!';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.textContent = 'Copy';
+                    btn.classList.remove('copied');
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+            });
         }
 
         function renderNews(newsItems) {
