@@ -103,7 +103,7 @@ One-click export for:
 
 ## 🚀 How to Use
 
-### Option 1: View Live
+### Option 1: View Live (Click on Refresh) - Wait for 2 mins to fetch the data
 **[https://hackersbun-girish.github.io/HackersBun/](https://girish-rao-str.github.io/HackersBUN/)**
 
 ### Option 2: Run Locally
