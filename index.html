@@ -77,8 +77,7 @@
         .news-card { background: var(--bg-card); border: 2px solid var(--border); border-radius: 16px; padding: 20px; transition: 0.2s; cursor: pointer; text-decoration: none; color: inherit; display: block; position: relative; box-shadow: 4px 4px 0 var(--border); overflow: hidden; }
         .news-card.linkedin-post { border-color: var(--accent-secondary); }
         .news-card.linkedin-post::before { content: 'in'; position: absolute; top: -1px; right: 16px; background: var(--accent-primary); color: var(--bg-primary); font-family: 'Space Grotesk', sans-serif; font-size: 0.6rem; font-weight: 700; padding: 4px 10px; border-radius: 0 0 8px 8px; }
-        .news-card:hover { transform: translate(-4px, -4px); box-shadow: 8px 8px 0 var(--accent-secondary); border-color: var(--accent-primary); animation: shake 0.5s ease-in-out; }
-        @keyframes shake { 0%, 100% { transform: translate(-4px, -4px) rotate(0deg); } 25% { transform: translate(-2px, -4px) rotate(-2deg); } 50% { transform: translate(-4px, -2px) rotate(2deg); } 75% { transform: translate(-2px, -2px) rotate(-1deg); } }
+        .news-card:hover { transform: translate(-4px, -4px); box-shadow: 8px 8px 0 var(--accent-secondary); border-color: var(--accent-primary); }
         
         .card-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; gap: 12px; opacity: 0; transition: 0.2s; z-index: 10; }
         .news-card:hover .card-overlay { opacity: 1; }
@@ -465,10 +464,7 @@ function copyNews(e, title, summary, url) {
 
         // Auto-enable refresh and load news on startup
         loadTheme(); loadBookmarks(); 
-        
-        // Fetch latest news immediately
         fetchNews().then(() => {
-            // Auto-enable refresh after first load
             autoRefreshEnabled = true;
             document.getElementById('autoToggle').classList.add('active');
             startAutoRefresh();
